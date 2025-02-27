@@ -1,0 +1,261 @@
+﻿Diagnose log at 2025-02-27T18:26:42Z
+
+AppPath: C:\Cmder\vendor\git-for-windows\mingw64\bin\git-credential-manager.exe
+InstallDir: C:\Cmder\vendor\git-for-windows\mingw64\bin\
+Version: 2.5.0+d34930736e131ad80e5690e5634ced1808aff3e2
+
+------------
+Diagnostic: Environment
+Skipped: False
+Success: True
+Exception: None
+Log:
+OSType: Windows
+OSVersion: 10.0 (build 19045)
+Reading environment variables... OK
+ Variables:
+git_executable=C:\Cmder\vendor\git-for-windows\cmd\git.exe
+lib_path=call "C:\Cmder\vendor\lib\lib_path.cmd"
+ConEmuPID=12104
+PUBLIC=C:\Users\Public
+ConEmuArgs=/Icon "C:\Cmder\icons\cmder.ico" /title "Cmder"
+ALLUSERSPROFILE=C:\ProgramData
+print_debug=if 0 gtr 0 call "C:\Cmder\vendor\lib\lib_console.cmd" debug_output
+position=append
+LOCALAPPDATA=C:\Users\Ivane\AppData\Local
+CMDER_SHELL=cmd
+GIT_EXEC_PATH=C:/Cmder/vendor/git-for-windows/mingw64/libexec/git-core
+ConEmuTask={cmd::Cmder}
+OMP_NUM_THREADS=12
+ConEmuHWND=0x00020ADA
+GIT_INSTALL_ROOT=C:\Cmder\vendor\git-for-windows
+OneDrive=C:\Users\Ivane\OneDrive
+QtMsBuild=C:\Users\Ivane\AppData\Local\QtMsBuild
+lib_profile=call "C:\Cmder\vendor\lib\lib_profile.cmd"
+print_verbose=if 0 gtr 0 call "C:\Cmder\vendor\lib\lib_console.cmd" verbose_output
+CARBON_MEM_DISABLE=1
+git_locale="C:\Cmder\vendor\git-for-windows\usr\bin\locale.exe"
+ProgramW6432=C:\Program Files
+ConEmuServerPID=11192
+cexec="C:\Cmder\vendor\bin\cexec.cmd"
+ConEmuCfgDir=C:\Cmder\vendor\conemu-maximus5
+feNot=false
+ConEmuAnsiLog=
+CLINK_COMPLETIONS_DIR=C:\Cmder/vendor/clink-completions/completions
+CMDER_ROOT=C:\Cmder
+ESC=
+SystemDrive=C:
+MSYSTEM=MINGW64
+OS=Windows_NT
+PROCESSOR_ARCHITECTURE=x86
+found=1
+ANSICON=117x1000 (117x31)
+RG_GPU_FRAMEWORK_ENGINE_RESOURCEDIR=C:\Program Files\Red Giant\RGFX
+CMDER_INIT_END=15:48:18,85
+lib_base=call "C:\Cmder\vendor\lib\lib_base.cmd"
+lib_console=call "C:\Cmder\vendor\lib\lib_console.cmd"
+PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+add_to_path=C:\Cmder
+clink_architecture=x64
+GIT_VERSION_VENDORED=2.45.1.windows.1
+fast_init=0
+ProgramFiles=C:\Program Files (x86)
+CommonProgramW6432=C:\Program Files\Common Files
+ProgramFiles(x86)=C:\Program Files (x86)
+USERNAME=Ivaner1234@yandex.ru
+VENDORED_MAJOR=2
+ConEmuDir=C:\Cmder\vendor\conemu-maximus5
+feFlagName= 
+ProgramData=C:\ProgramData
+print_warning=if 0 gtr 0 call "C:\Cmder\vendor\lib\lib_console.cmd" show_warning
+debug_output=0
+ConEmuPalette=Monokai
+CommonProgramFiles=C:\Program Files (x86)\Common Files
+TERM=xterm-256color
+print_error=call "C:\Cmder\vendor\lib\lib_console.cmd" show_error
+LANG=ru_RU.UTF-8
+path_position=append
+ANSICON_DEF=7
+CMDER_CONFIG_DIR=C:\Cmder\config
+COLUMNS=117
+ConEmuDrive=C:
+PSModulePath=C:\Program Files\WindowsPowerShell\Modules;C:\Windows\system32\WindowsPowerShell\v1.0\Modules
+PROCESSOR_REVISION=5000
+currenArgu=/setpath
+STM32CubeMX_PATH=C:\Users\Ivane\AppData\Local\Programs\STM32CubeMX
+CMDER_CLINK=1
+MIC_LD_LIBRARY_PATH=C:\Program Files (x86)\Common Files\Intel\Shared Libraries\compiler\lib\mic
+LOGONSERVER=\\DESKTOP-R6E8RNH
+max_depth=1
+COMPUTERNAME=DESKTOP-R6E8RNH
+VENDORED_MINOR=45
+LINES=31
+add_path=C:\Cmder
+CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+SystemRoot=C:\Windows
+ConEmuBuild=230724
+ComSpec=C:\Windows\system32\cmd.exe
+lib_git=call "C:\Cmder\vendor\lib\lib_git.cmd"
+PROCESSOR_ARCHITEW6432=AMD64
+PROCESSOR_LEVEL=25
+ConEmuBaseDir=C:\Cmder\vendor\conemu-maximus5\ConEmu
+HOMEDRIVE=C:
+ConEmuArgs2=
+OneDriveConsumer=C:\Users\Ivane\OneDrive
+Path=C:/Cmder/vendor/git-for-windows/mingw64/libexec/git-core;C:\Cmder\vendor\git-for-windows\mingw64\bin;C:\Cmder\vendor\git-for-windows\usr\bin;C:\Users\Ivane\bin;C:\Cmder\vendor\git-for-windows\cmd;C:\Cmder\vendor\conemu-maximus5\ConEmu\Scripts;C:\Cmder\vendor\conemu-maximus5;C:\Cmder\vendor\conemu-maximus5\ConEmu;C:\Program Files (x86)\Common Files\Oracle\Java\java8path;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\Microsoft SQL Server\120\Tools\Binn\;C:\Program Files\Cloudflare\Cloudflare WARP\;C:\Program Files\dotnet\;C:\Users\Ivane\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\Ivane\AppData\Local\Programs\Python\Python312\;C:\Users\Ivane\AppData\Local\Microsoft\WindowsApps;C:\Users\Ivane\AppData\Local\Programs\Microsoft VS Code\bin;C:\msys64\ucrt64\bin;C:\Users\Ivane\.dotnet\tools;C:\Cmder\vendor\git-for-windows\mingw64\bin;C:\Cmder\vendor\git-for-windows\usr\bin;C:\Cmder\vendor\bin;C:\Cmder
+nix_tools=1
+time_init=0
+USERPROFILE=C:\Users\Ivane
+ConEmuConfig=
+PROCESSOR_IDENTIFIER=AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD
+VENDORED_BUILD=windows.1
+ConEmuWorkDrive=C:
+CMDER_CONFIGURED=1
+windir=C:\Windows
+SESSIONNAME=Console
+TMP=C:\Users\Ivane\AppData\Local\Temp
+CMDER_INIT_START=15:48:17,23
+ccall=call "C:\Cmder\vendor\bin\cexec.cmd"
+INTEL_DEV_REDIST=C:\Program Files (x86)\Common Files\Intel\Shared Libraries\
+APPDATA=C:\Users\Ivane\AppData\Roaming
+ConEmuANSI=ON
+verbose_output=0
+SVN_SSH=C:\\Cmder\\vendor\\git-for-windows\\bin\\ssh.exe
+ConEmuBaseDirShort=C:\Cmder\vendor\conemu-maximus5\ConEmu
+USERDOMAIN=DESKTOP-R6E8RNH
+NUMBER_OF_PROCESSORS=12
+TMPDIR=C:\Users\Ivane\AppData\Local\Temp
+CMDER_USER_FLAGS= 
+ConEmuWorkDir=C:\Cmder
+find_query=C:\\Cmder
+USERDOMAIN_ROAMINGPROFILE=DESKTOP-R6E8RNH
+PLINK_PROTOCOL=ssh
+GIT_TRACE2_PARENT_SID=6359f002-d3a8-43d3-a993-64a8dc8b7deb
+depth=1
+HOMEPATH=\Users\Ivane
+TEMP=C:\Users\Ivane\AppData\Local\Temp
+user_aliases=C:\Cmder\config\user_aliases.cmd
+VENDORED_PATCH=1
+CMDER_ALIASES=1
+COLORTERM=truecolor
+HOME=C:\Users\Ivane
+PROMPT=CLINK $P$G
+DriverData=C:\Windows\System32\Drivers\DriverData
+OLD_PATH=C:\Cmder\vendor\git-for-windows\cmd;C:\Cmder\vendor\conemu-maximus5\ConEmu\Scripts;C:\Cmder\vendor\conemu-maximus5;C:\Cmder\vendor\conemu-maximus5\ConEmu;C:\Program Files (x86)\Common Files\Oracle\Java\java8path;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\Microsoft SQL Server\120\Tools\Binn\;C:\Program Files\Cloudflare\Cloudflare WARP\;C:\Program Files\dotnet\;C:\Users\Ivane\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\Ivane\AppData\Local\Programs\Python\Python312\;C:\Users\Ivane\AppData\Local\Microsoft\WindowsApps;C:\Users\Ivane\AppData\Local\Programs\Microsoft VS Code\bin;C:\msys64\ucrt64\bin;C:\Users\Ivane\.dotnet\tools;C:\Cmder\vendor\git-for-windows\mingw64\bin;C:\Cmder\vendor\git-for-windows\usr\bin;C:\Cmder\vendor\bin
+ConEmuBackHWND=0x00020ACA
+ConEmuDrawHWND=0x00020ACC
+architecture_bits=64
+ConEmuHooks=Enabled
+aliases=C:\Cmder\config\user_aliases.cmd
+
+
+------------
+Diagnostic: File system
+Skipped: False
+Success: True
+Exception: None
+Log:
+Temporary directory is 'C:\Users\Ivane\AppData\Local\Temp\'...
+Checking basic file I/O...
+Writing to temporary file 'C:\Users\Ivane\AppData\Local\Temp\3dbc40068df5aeb8e3c4bed7'... OK
+Reading from temporary file 'C:\Users\Ivane\AppData\Local\Temp\3dbc40068df5aeb8e3c4bed7'... OK
+Deleting temporary file 'C:\Users\Ivane\AppData\Local\Temp\3dbc40068df5aeb8e3c4bed7'... OK
+Testing IFileSystem instance...
+UserHomePath: C:\Users\Ivane
+UserDataDirectoryPath: C:\Users\Ivane\.gcm
+GetCurrentDirectory(): C:\Programming_projects_for_gcc_compiler\Battle_city_in_cmd
+
+------------
+Diagnostic: Networking
+Skipped: False
+Success: True
+Exception: None
+Log:
+Checking networking and HTTP stack...
+Creating HTTP client... OK
+IsNetworkAvailable: True
+Sending HEAD request to http://example.com...Sending HEAD request to https://example.com... OK
+ OK
+Acquiring free TCP port... OK
+Testing local HTTP loopback connections...
+Creating new HTTP listener for http://localhost:56401/... OK
+Waiting for loopback connection... OK
+Writing response... OK
+Waiting for response data... OK
+Loopback connection data OK
+
+------------
+Diagnostic: Git
+Skipped: False
+Success: True
+Exception: None
+Log:
+Getting Git version... OK
+Git version is '2.45.1.windows.1'
+Locating current repository...Git repository at 'C:/Programming_projects_for_gcc_compiler/Battle_city_in_cmd/.git'
+ OK
+Listing all Git configuration... OK
+Git configuration:
+file:C:/Cmder/vendor/git-for-windows/etc/gitconfig	core.symlinks=false
+file:C:/Cmder/vendor/git-for-windows/etc/gitconfig	core.autocrlf=true
+file:C:/Cmder/vendor/git-for-windows/etc/gitconfig	core.fscache=true
+file:C:/Cmder/vendor/git-for-windows/etc/gitconfig	color.interactive=true
+file:C:/Cmder/vendor/git-for-windows/etc/gitconfig	color.ui=auto
+file:C:/Cmder/vendor/git-for-windows/etc/gitconfig	help.format=html
+file:C:/Cmder/vendor/git-for-windows/etc/gitconfig	diff.astextplain.textconv=astextplain
+file:C:/Cmder/vendor/git-for-windows/etc/gitconfig	rebase.autosquash=true
+file:C:/Cmder/vendor/git-for-windows/etc/gitconfig	filter.lfs.clean=git-lfs clean -- %f
+file:C:/Cmder/vendor/git-for-windows/etc/gitconfig	filter.lfs.smudge=git-lfs smudge -- %f
+file:C:/Cmder/vendor/git-for-windows/etc/gitconfig	filter.lfs.process=git-lfs filter-process
+file:C:/Cmder/vendor/git-for-windows/etc/gitconfig	filter.lfs.required=true
+file:C:/Cmder/vendor/git-for-windows/etc/gitconfig	credential.helper=helper-selector
+file:C:/Users/Ivane/.gitconfig	user.email=Ivaner1234
+file:C:/Users/Ivane/.gitconfig	user.name=Ivan Kuleshov
+file:C:/Users/Ivane/.gitconfig	credential.helperselector.selected=<no helper>
+file:.git/config	core.repositoryformatversion=0
+file:.git/config	core.filemode=false
+file:.git/config	core.bare=false
+file:.git/config	core.logallrefupdates=true
+file:.git/config	core.symlinks=false
+file:.git/config	core.ignorecase=true
+file:.git/config	remote.origin.url=https://github.com/TheFireAtom/BattleCity-game-in-console.git
+file:.git/config	remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
+file:.git/config	branch.main.remote=origin
+file:.git/config	branch.main.merge=refs/heads/main
+
+
+------------
+Diagnostic: Credential storage
+Skipped: False
+Success: True
+Exception: None
+Log:
+ICredentialStore instance is of type: CredentialStore
+Writing test credential... OK
+Reading test credential... OK
+Deleting test credential... OK
+
+------------
+Diagnostic: Microsoft authentication (AAD/MSA)
+Skipped: False
+Success: True
+Exception: None
+Log:
+Broker is not enabled.
+Flow type is: Auto
+Gathering MSAL token cache data... OK
+CacheDirectory: C:\Users\Ivane\AppData\Local\.IdentityService
+CacheFileName: msal.cache
+CacheFilePath: C:\Users\Ivane\AppData\Local\.IdentityService\msal.cache
+Creating cache helper... OK
+Verifying MSAL token cache persistence... OK
+
+------------
+Diagnostic: GitHub API
+Skipped: False
+Success: True
+Exception: None
+Log:
+Using 'https://github.com/' as API target.
+Querying '/meta' endpoint... OK
+
