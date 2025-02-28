@@ -9,8 +9,8 @@
 // Глобальные переменные и другие данные
 const int WIDTH = 15;       // Ширина карты
 const int HEIGHT = 11;      // Высота карты
-std::atomic<bool> needRedraw(false);    // Флаг изменения состояния отрисовки карты
-std::atomic<bool> isRunning(true);   // Флаг изменения состояния потока обработки снаряда (игрока)
+bool needRedraw(false);    // Флаг изменения состояния отрисовки карты
+bool isRunning(true);   // Флаг изменения состояния потока обработки снаряда (игрока)
 std::mutex mtx; // Мьютекс для фикса бага с неуничтожением первой преграды если танк стоит к ней вплотную
 
 // Карта из символов
@@ -46,7 +46,7 @@ Projectile playerProjectile = { -1, -1, '\0'};
 Projectile playerTank = { 6, 7, '^'};
 
 // Функция для движения танка в определённую сторону и отрисовки соответственного символа
-void selectDirSym(int newX, int newY, char directionSymbol) {
+void drawDirSym(int newX, int newY, char directionSymbol) {
     //std::lock_guard<std::mutex> lock(mtx);
     if (map[newY][newX] == '.') {
         map[playerTank.y][playerTank.x] = '.';                // Очистка старой клетки с T
@@ -65,26 +65,26 @@ void moveTank(char direction) {
     // Определение направления движения танка
     if (direction == 'W' || direction == 'w') { 
         newY--; // Вверх
-        selectDirSym(newX, newY, '^');
+        drawDirSym(newX, newY, '^');
         playerTank.direction = '^';
     }
 
     else if (direction == 'S' || direction == 's') {
         newY++; // Вниз
-        selectDirSym(newX, newY, 'v');
+        drawDirSym(newX, newY, 'v');
         playerTank.direction = 'v';
     }
 
     else if (direction == 'A' || direction == 'a') {
         newX--; // Влево
-        selectDirSym(newX, newY, '<');
+        drawDirSym(newX, newY, '<');
         playerTank.direction = '<';
 
     }
 
     else if (direction == 'D' || direction == 'd') {
         newX++; // Вправо
-        selectDirSym(newX, newY, '>');
+        drawDirSym(newX, newY, '>');
         playerTank.direction = '>';
     }
 
@@ -113,7 +113,7 @@ void moveProjectile() {
         playerProjectile.x++;
     }
 
-    if (playerProjectile.x <= 0 || playerProjectile.x >= WIDTH - 1 || playerProjectile.y <= 0 || playerProjectile.y >= HEIGHT - 1) {
+    if (playerProjectile.x <= 0 || playerProjectile.x >= WIDTH - 1 || playerProjectile.y <= 0 || playerProjectile.y >= HEIGHT - 2) {
         playerProjectile.x = -1;
         playerProjectile.y = -1;
     }
@@ -123,36 +123,28 @@ void moveProjectile() {
 
 // Функция выстрела снаряда
 void fireProjectile(char tankDir) {
-    //std::lock_guard<std::mutex> lock(mtx);
 
-    if (playerProjectile.x == -1 && playerProjectile.y == -1) {    // Условие того что снаряд не выстрелен
-        playerProjectile.x = playerTank.x;
-        playerProjectile.y = playerTank.y; // +
+        if (tankDir == '^') {
+            playerProjectile.x = playerTank.x;
+            playerProjectile.y = playerTank.y - 1; // +
+        }
+
+        if (tankDir == 'v') {
+            playerProjectile.x = playerTank.x;
+            playerProjectile.y = playerTank.y + 1; // -
+        }
+
+        if (tankDir == '<') {
+            playerProjectile.x = playerTank.x - 1;
+            playerProjectile.y = playerTank.y;
+        }
+
+        if (tankDir == '>') {
+            playerProjectile.x = playerTank.x + 1;
+            playerProjectile.y = playerTank.y;
+        }
+
         playerProjectile.direction = playerTank.direction;
-    }
-
-        // if (tankDir == '^') {
-        //     playerProjectile.x = playerTank.x;
-        //     playerProjectile.y = playerTank.y; // +
-        // }
-
-        // if (tankDir == 'v') {
-        //     playerProjectile.x = playerTank.x;
-        //     playerProjectile.y = playerTank.y; // -
-        // }
-
-        // if (tankDir == '<') {
-        //     playerProjectile.x = playerTank.x;
-        //     playerProjectile.y = playerTank.y;
-        // }
-
-        // if (tankDir == '>') {
-        //     playerProjectile.x = playerTank.x;
-        //     playerProjectile.y = playerTank.y;
-        // }
-
-
-        // playerProjectile.direction = playerTank.direction;
 
 }
 
@@ -177,9 +169,9 @@ void drawMap() {
                 if (playerProjectile.x == j && playerProjectile.y == i) {
                     std::cout << '*';
                 } 
-                else if (playerTank.x == j && playerTank.y == i) {
-                    std::cout << playerTank.direction;
-                }
+                // else if (playerTank.x == j && playerTank.y == i) {
+                //     std::cout << playerTank.direction;
+                // }
                 else {
                     std::cout << map[i][j]; 
                 }
@@ -190,7 +182,7 @@ void drawMap() {
     }
 }
 
-// Функция обработки нажатия кнопок, старая версия
+// Функция обработки нажатия кнопок
 char getPressedKey() {
     if (GetAsyncKeyState('W') & 0x8000) return 'w'; // 0x8000 это по сути шестнадцатеричная побитовая маска
     if (GetAsyncKeyState('S') & 0x8000) return 's';
@@ -204,36 +196,48 @@ char getPressedKey() {
     return '\0';    // В случае отсутствия возврата кнопки возвращается пустой символ
 }
 
-// // Функция обработки нажатия кнопок, новая версия
-// char getPressedKey() {
-//     if (_kbhit()) {
-//         char key = _getch();
-//         return key;
+// В данной версии игры многопоточность не нужна, она только усложняет процесс написания кода и добавляет новые баги
+// Функция создания дополнительного фонового потока для независимого движения снаряда
+// void asyncMoveProjectile() {
+//     //std::lock_guard<std::mutex> lock(mtx);
+//     while (isRunning) {
+//         if (playerProjectile.x != -1) { // Проверка на наличие снаряда на карте
+//             moveProjectile();
+//             std::this_thread::sleep_for(std::chrono::milliseconds(100));    // Задержка для замедления полёта снаряда
+//         }
 //     }
-
-//     return '\0';    // В случае отсутствия возврата кнопки возвращается пустой символ
 // }
 
-// Функция создания дополнительного фонового потока для независимого движения снаряда
-void asyncMoveProjectile() {
-    //std::lock_guard<std::mutex> lock(mtx);
-    while (true) {
-        if (playerProjectile.x != -1) { // Проверка на наличие снаряда на карте
-            moveProjectile();
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));    // Задержка для замедления полёта снаряда
-        }
-    }
-}
+// void asyncMoveTank() {
+//     //std::lock_guard<std::mutex> lock(mtx);
+//     while (isRunning) {
+//         char key = getPressedKey();
+//         if (key != '\0') {
+//             moveTank(key);
+//         }
+        
+//         std::this_thread::sleep_for(std::chrono::milliseconds(100));    // Задержка для замедления полёта снаряда
+//     }
+// }
 
 int main() {
     std::cout << "Press 'w' key to start the game!" << '\n';
 
-    std::thread playerProjectileThread(asyncMoveProjectile);    // Здесь создаётся отдельный поток для движения снаряда
-
+   // std::thread playerProjectileThread(asyncMoveProjectile);    // Здесь создаётся отдельный поток для движения снаряда
+   // std::thread playerTankThread(asyncMoveTank);                // Аналогично с танком игрока
+                                                                  
     while (isRunning) {
-        char key = getPressedKey();
-        projectileCollision();
 
+        projectileCollision();
+        char key = getPressedKey();
+
+        if (playerProjectile.x != -1) { // Проверка на наличие снаряда на карте
+            moveProjectile();
+            //std::this_thread::sleep_for(std::chrono::milliseconds(50));    // Задержка для замедления полёта снаряда
+        }
+
+        // Функция обработки нажатия кнопок, новая версия
+       
         if (key != '\0') { 
             if (key == 'p') {    // Кнопка для выстрела из танка
                 fireProjectile(playerTank.direction);
@@ -246,7 +250,6 @@ int main() {
             }
 
             else {
-                std::cout << "Pressed key: " << key << std::endl;
                 moveTank(key);
             }
         }
@@ -255,11 +258,12 @@ int main() {
             drawMap();
             needRedraw = false; // Зануляем флаг
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     }
-
-    playerProjectileThread.join();
+    // playerProjectileThread.join();
+    // playerTankThread.join();
     return 0;
 }
 
