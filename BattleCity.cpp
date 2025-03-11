@@ -5,12 +5,13 @@
 #include <conio.h>     // Альтернатива GetAsyncKeyState(), чтобы всё не ломалось
 #include <mutex>       // Напоминалка что нужно будет почитать про mutex-ы и про thread в целом
 #include <atomic>      // Для создания атомарных переменных для предотвращения гонок данных
+#include "RandomNum.h" // Кастомная библиотека для генерации случайных чисел (в диапазоне до 2^32 или в заданном диапазоне, который меньше 2^32)
 
 // Глобальные переменные и другие данные
 const int WIDTH = 15;       // Ширина карты
 const int HEIGHT = 11;      // Высота карты
 bool needRedraw(false);    // Флаг изменения состояния отрисовки карты
-bool isRunning(true);   // Флаг изменения состояния потока обработки снаряда (игрока)
+bool isRunning(false);   // Флаг изменения состояния потока обработки снаряда (игрока)
 std::mutex mtx; // Мьютекс для фикса бага с неуничтожением первой преграды если танк стоит к ней вплотную
 
 // Карта из символов
@@ -126,21 +127,21 @@ void fireProjectile(char tankDir) {
 
         if (tankDir == '^') {
             playerProjectile.x = playerTank.x;
-            playerProjectile.y = playerTank.y - 1; // +
+            playerProjectile.y = playerTank.y; // +
         }
 
         if (tankDir == 'v') {
             playerProjectile.x = playerTank.x;
-            playerProjectile.y = playerTank.y + 1; // -
+            playerProjectile.y = playerTank.y; // -
         }
 
         if (tankDir == '<') {
-            playerProjectile.x = playerTank.x - 1;
+            playerProjectile.x = playerTank.x;
             playerProjectile.y = playerTank.y;
         }
 
         if (tankDir == '>') {
-            playerProjectile.x = playerTank.x + 1;
+            playerProjectile.x = playerTank.x;
             playerProjectile.y = playerTank.y;
         }
 
@@ -154,6 +155,9 @@ void projectileCollision() {
         map[playerProjectile.y][playerProjectile.x] = '.';
         playerProjectile.y = -1;
         playerProjectile.x = -1;
+    } 
+    else if (map[playerProjectile.y][playerProjectile.x] == '#') {
+        return;
     }
 
     needRedraw = true;
@@ -161,17 +165,20 @@ void projectileCollision() {
 
 // Функция отрисовки карты
 void drawMap() {
-    std::lock_guard<std::mutex> lock(mtx);
+    //std::lock_guard<std::mutex> lock(mtx);
     if (needRedraw == true) {
-        system("cls");
+        //system("cls");    // Плохой способ, 
+        std::cout << "\033[H\033[J";  // ANSI escape code для очистки экрана
         for (int i = 0; i < HEIGHT; i++) {
             for (int j = 0; j < WIDTH; j++) {
                 if (playerProjectile.x == j && playerProjectile.y == i) {
-                    std::cout << '*';
+                    if (map[playerProjectile.y][playerProjectile.x] != '#' && map[playerProjectile.y][playerProjectile.x] != playerTank.direction) {
+                        std::cout << '*';
+                    } 
+                    else {
+                        std::cout << playerTank.direction;
+                    }
                 } 
-                // else if (playerTank.x == j && playerTank.y == i) {
-                //     std::cout << playerTank.direction;
-                // }
                 else {
                     std::cout << map[i][j]; 
                 }
@@ -197,6 +204,7 @@ char getPressedKey() {
 }
 
 // В данной версии игры многопоточность не нужна, она только усложняет процесс написания кода и добавляет новые баги
+
 // Функция создания дополнительного фонового потока для независимого движения снаряда
 // void asyncMoveProjectile() {
 //     //std::lock_guard<std::mutex> lock(mtx);
@@ -221,11 +229,31 @@ char getPressedKey() {
 // }
 
 int main() {
-    std::cout << "Press 'w' key to start the game!" << '\n';
+
+    XorShift32 rnd;
+
+    std::cout << "Press 'Enter' key to start the game!" << std::endl;
+    //std::cout << rnd.randNum() << std::flush;
+
+    while (true) {
+        if (GetAsyncKeyState(VK_RETURN) & 0x8000) {
+            isRunning = true;
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+
+    char startKey = getPressedKey();
+
+    if (startKey == 'n') {
+        isRunning = true;
+    }
 
    // std::thread playerProjectileThread(asyncMoveProjectile);    // Здесь создаётся отдельный поток для движения снаряда
    // std::thread playerTankThread(asyncMoveTank);                // Аналогично с танком игрока
-                                                                  
+   
+   // std::this_thread::sleep_for(std::chrono::seconds(1));             
+
     while (isRunning) {
 
         projectileCollision();
@@ -267,3 +295,4 @@ int main() {
     return 0;
 }
 
+ 
