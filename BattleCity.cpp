@@ -1,7 +1,7 @@
 #include <iostream>
 #include <thread>      // Для std::this_thread::sleep_for()
 #include <chrono>      // Для std::chrono::milliseconds()
-#include <windows.h>   // Для GetAsyncKeyState()
+#include <windows.h>   // Для функций GetAsyncKeyState() и setColor()
 #include <conio.h>     // Альтернатива GetAsyncKeyState(), чтобы всё не ломалось
 #include <mutex>       // Напоминалка что нужно будет почитать про mutex-ы и про thread в целом
 #include <atomic>      // Для создания атомарных переменных для предотвращения гонок данных
@@ -13,6 +13,10 @@ const int HEIGHT = 11;      // Высота карты
 bool needRedraw(false);    // Флаг изменения состояния отрисовки карты
 bool isRunning(false);   // Флаг изменения состояния потока обработки снаряда (игрока)
 std::mutex mtx; // Мьютекс для фикса бага с неуничтожением первой преграды если танк стоит к ней вплотную
+
+void setColor(int color) {      // Функция для установки цвета в командной строке
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+} 
 
 // Карта из символов
 char map[HEIGHT][WIDTH + 1] = {
@@ -230,14 +234,34 @@ char getPressedKey() {
 
 int main() {
 
-    XorShift32 rnd;
+    
+    XorShift32 rnd; // Создание объекта класса для создание случайных чисел
 
+    system("cls");
+    //std::cout << std::endl;
+    setColor(7);
+    std::cout << "Welcome to BattleCity.exe!" << std::endl << "\n";
+    setColor(2);
+    std::cout << "Controls: " << std::endl << "\n";
+    setColor(2);
+    std::cout << "W: move tank one cell up" << std::endl;
+    std::cout << "A: move tank one cell left" << std::endl;
+    std::cout <<"S: move tank one cell down" << std::endl;
+    std::cout <<"D: move tank one cell right" << std::endl;
+    std::cout <<"Space: fire a projectile that destroys one enemy or obstacle upon collision" << std::endl;
+    std::cout <<"Escape: exit the game" << std::endl << std::endl;
+
+    setColor(4);
     std::cout << "Press 'Enter' key to start the game!" << std::endl;
+    setColor(7);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
     //std::cout << rnd.randNum() << std::flush;
 
     while (true) {
         if (GetAsyncKeyState(VK_RETURN) & 0x8000) {
             isRunning = true;
+            setColor(7);
             break;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -245,7 +269,7 @@ int main() {
 
     char startKey = getPressedKey();
 
-    if (startKey == 'n') {
+    if (startKey == 'n') { 
         isRunning = true;
     }
 
