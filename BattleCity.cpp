@@ -38,6 +38,14 @@ char map[HEIGHT][WIDTH + 1] = {
 struct Tank {
     int x, y;
     char direction;
+
+    Tank(int startX, int startY, char dir) : x(startX), y(startY), direction(dir) {
+        std::cout << "Tank created at (" << x << ", " << y << ") facing " << direction << std::endl;
+    }
+
+    ~Tank() {
+        std::cout << "Tank at (" << x << ", " << y << ") destroyed!" << std::endl;
+    }
 };
 
 // Структура снаряда
@@ -47,19 +55,36 @@ struct Projectile {
 };
 
 // Объявление объектов структур
-Projectile playerProjectile = { -1, -1, '\0'};
-Projectile playerTank = { 6, 7, '^'};
+Projectile playerProjectile = {-1, -1, '\0'};
+Tank playerTank = {6, 7, '^'};
+
+void spawnEnemyTank() {
+
+    XorShift32 rnd; // Создание объекта класса для создание случайных чисел
+    uint32_t tankPosition = rnd.rangeNum(1, 4);
+
+    if (tankPosition == 1) Tank enemyTank = {1, 1, '>'};
+    else if (tankPosition == 2) Tank enemyTank = {13, 1, '>'};
+    else if (tankPosition == 3) Tank enemyTank = {1, 8, '>'};
+    else if (tankPosition == 4) Tank enemyTank = {13, 8, '>'};
+
+    std::cout << tankPosition;
+
+
+
+
+}
 
 // Функция для движения танка в определённую сторону и отрисовки соответственного символа
-void drawDirSym(int newX, int newY, char directionSymbol) {
+void drawDirSym(int newX, int newY, char directionSymbol, Tank tank) {
     //std::lock_guard<std::mutex> lock(mtx);
-    if (map[newY][newX] == '.') {
-        map[playerTank.y][playerTank.x] = '.';                // Очистка старой клетки с T
-        playerTank.x = newX;
-        playerTank.y = newY;
-        map[playerTank.y][playerTank.x] = directionSymbol;    // Замена новой клетки с . на нужный символ
+    if (map[tank.y][tank.x] == '.') {
+        map[tank.y][tank.x] = '.';                // Очистка старой клетки с T
+        tank.x = newX;
+        tank.y = newY;
+        map[tank.y][tank.x] = directionSymbol;    // Замена новой клетки с . на нужный символ
     } else {
-        map[playerTank.y][playerTank.x] = directionSymbol;
+        map[tank.y][tank.x] = directionSymbol;
     }
 }
 
@@ -70,26 +95,26 @@ void moveTank(char direction) {
     // Определение направления движения танка
     if (direction == 'W' || direction == 'w') { 
         newY--; // Вверх
-        drawDirSym(newX, newY, '^');
+        drawDirSym(newX, newY, '^', playerTank);
         playerTank.direction = '^';
     }
 
     else if (direction == 'S' || direction == 's') {
         newY++; // Вниз
-        drawDirSym(newX, newY, 'v');
+        drawDirSym(newX, newY, 'v', playerTank);
         playerTank.direction = 'v';
     }
 
     else if (direction == 'A' || direction == 'a') {
         newX--; // Влево
-        drawDirSym(newX, newY, '<');
+        drawDirSym(newX, newY, '<', playerTank);
         playerTank.direction = '<';
 
     }
 
     else if (direction == 'D' || direction == 'd') {
         newX++; // Вправо
-        drawDirSym(newX, newY, '>');
+        drawDirSym(newX, newY, '>', playerTank);
         playerTank.direction = '>';
     }
 
@@ -234,8 +259,6 @@ char getPressedKey() {
 
 int main() {
 
-    
-    XorShift32 rnd; // Создание объекта класса для создание случайных чисел
 
     system("cls");
     //std::cout << std::endl;
@@ -279,6 +302,9 @@ int main() {
    // std::this_thread::sleep_for(std::chrono::seconds(1));             
 
     while (isRunning) {
+
+        spawnEnemyTank();
+        //std::this_thread::sleep_for(std::chrono::seconds(1));  
 
         projectileCollision();
         char key = getPressedKey();
