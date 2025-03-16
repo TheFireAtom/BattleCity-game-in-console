@@ -3,16 +3,20 @@
 #include <chrono>      // Для std::chrono::milliseconds()
 #include <windows.h>   // Для функций GetAsyncKeyState() и setColor()
 #include <conio.h>     // Альтернатива GetAsyncKeyState(), чтобы всё не ломалось
-#include <mutex>       // Напоминалка что нужно будет почитать про mutex-ы и про thread в целом
-#include <atomic>      // Для создания атомарных переменных для предотвращения гонок данных
+#include <vector>      // Для создания вектора (динамического массива) вражеских танков
+// #include <mutex>       // Напоминалка что нужно будет почитать про mutex-ы и про thread в целом
+// #include <atomic>      // Для создания атомарных переменных для предотвращения гонок данных
 #include "RandomNum.h" // Кастомная библиотека для генерации случайных чисел (в диапазоне до 2^32 или в заданном диапазоне, который меньше 2^32)
+
+using namespace std::chrono;    // Пространство имён для удобства записи данных, связанных со временем
 
 // Глобальные переменные и другие данные
 const int WIDTH = 15;       // Ширина карты
 const int HEIGHT = 11;      // Высота карты
 bool needRedraw(false);    // Флаг изменения состояния отрисовки карты
 bool isRunning(false);   // Флаг изменения состояния потока обработки снаряда (игрока)
-std::mutex mtx; // Мьютекс для фикса бага с неуничтожением первой преграды если танк стоит к ней вплотную
+// std::mutex mtx; // Мьютекс для фикса бага с неуничтожением первой преграды если танк стоит к ней вплотную
+XorShift32 rnd; // Создание объекта класса для создание случайных чисел
 
 void setColor(int color) {      // Функция для установки цвета в командной строке
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
@@ -39,13 +43,13 @@ struct Tank {
     int x, y;
     char direction;
 
-    Tank(int startX, int startY, char dir) : x(startX), y(startY), direction(dir) {
-        std::cout << "Tank created at (" << x << ", " << y << ") facing " << direction << std::endl;
-    }
+    // Tank(int startX, int startY, char dir) : x(startX), y(startY), direction(dir) {
+    //     std::cout << "Tank created at (" << x << ", " << y << ") facing " << direction << std::endl;
+    // }
 
-    ~Tank() {
-        std::cout << "Tank at (" << x << ", " << y << ") destroyed!" << std::endl;
-    }
+    // ~Tank() {
+    //     std::cout << "Tank at (" << x << ", " << y << ") destroyed!" << std::endl;
+    // }
 };
 
 // Структура снаряда
@@ -54,68 +58,54 @@ struct Projectile {
     char direction;
 };
 
-// Объявление объектов структур
+// Объявление объектов структур и вектора танков
 Projectile playerProjectile = {-1, -1, '\0'};
 Tank playerTank = {6, 7, '^'};
-
-void spawnEnemyTank() {
-
-    XorShift32 rnd; // Создание объекта класса для создание случайных чисел
-    uint32_t tankPosition = rnd.rangeNum(1, 4);
-
-    if (tankPosition == 1) Tank enemyTank = {1, 1, '>'};
-    else if (tankPosition == 2) Tank enemyTank = {13, 1, '>'};
-    else if (tankPosition == 3) Tank enemyTank = {1, 8, '>'};
-    else if (tankPosition == 4) Tank enemyTank = {13, 8, '>'};
-
-    std::cout << tankPosition;
-
-
-
-
-}
+std::vector<Tank> enemyTanks; // Глобальный вектор вражеских танков
 
 // Функция для движения танка в определённую сторону и отрисовки соответственного символа
-void drawDirSym(int newX, int newY, char directionSymbol, Tank tank) {
-    //std::lock_guard<std::mutex> lock(mtx);
-    if (map[tank.y][tank.x] == '.') {
-        map[tank.y][tank.x] = '.';                // Очистка старой клетки с T
-        tank.x = newX;
-        tank.y = newY;
-        map[tank.y][tank.x] = directionSymbol;    // Замена новой клетки с . на нужный символ
-    } else {
-        map[tank.y][tank.x] = directionSymbol;
-    }
+void drawDirSym(int newX, int newY, char directionSymbol, Tank& tank) {
+    map[tank.y][tank.x] = '.';                // Очистка старой клетки с T
+    tank.x = newX;
+    tank.y = newY;
+    map[tank.y][tank.x] = directionSymbol;    // Замена новой клетки с . на нужный символ
 }
 
 // Функция движения танка
-void moveTank(char direction) {
-    int newX = playerTank.x, newY = playerTank.y;
+void moveTank(char direction, Tank& tank) {
+    int newX = tank.x, newY = tank.y;
 
-    // Определение направления движения танка
-    if (direction == 'W' || direction == 'w') { 
-        newY--; // Вверх
-        drawDirSym(newX, newY, '^', playerTank);
-        playerTank.direction = '^';
-    }
+    // Определение направления движения танка и проверка на отсутствие коллизии со стенами
+    if ((direction == 'W' || direction == 'w')) {
+        if (map[tank.y - 1][tank.x] == '.') {
+            newY--; // Вверх
+        }
+        drawDirSym(newX, newY, '^', tank);
+        tank.direction = '^';
+    } 
 
-    else if (direction == 'S' || direction == 's') {
-        newY++; // Вниз
-        drawDirSym(newX, newY, 'v', playerTank);
-        playerTank.direction = 'v';
-    }
+    else if ((direction == 'S' || direction == 's')) { 
+        if (map[tank.y + 1][tank.x] == '.') {
+            newY++; // Вниз
+        }
+        drawDirSym(newX, newY, 'v', tank);
+        tank.direction = 'v';
+    } 
 
     else if (direction == 'A' || direction == 'a') {
-        newX--; // Влево
-        drawDirSym(newX, newY, '<', playerTank);
-        playerTank.direction = '<';
-
-    }
+        if (map[tank.y][tank.x - 1] == '.') {
+            newX--; // Влево
+        }
+        drawDirSym(newX, newY, '<', tank);
+        tank.direction = '<';
+    } 
 
     else if (direction == 'D' || direction == 'd') {
-        newX++; // Вправо
-        drawDirSym(newX, newY, '>', playerTank);
-        playerTank.direction = '>';
+        if (map[tank.y][tank.x + 1] == '.') {
+           newX++; // Вправо 
+        }
+        drawDirSym(newX, newY, '>', tank);
+        tank.direction = '>';
     }
 
     needRedraw = true;
@@ -123,73 +113,108 @@ void moveTank(char direction) {
 }
 
 // Функция движения снаряда
-void moveProjectile() {
+void moveProjectile(Projectile& projectile) {
     //std::lock_guard<std::mutex> lock(mtx);
-    if (playerProjectile.x == -1) return;   // Если снаряд не был выстрелен, функция не изменит его положения
+    if (projectile.x == -1) return;   // Если снаряд не был выстрелен, функция не изменит его положения
 
-    if (playerProjectile.direction == '^') {    
-        playerProjectile.y--;
+    if (projectile.direction == '^') {    
+        projectile.y--;
     }
 
-    else if (playerProjectile.direction == '<') {
-        playerProjectile.x--;
+    else if (projectile.direction == '<') {
+        projectile.x--;
     }
 
-    else if (playerProjectile.direction == 'v') {
-        playerProjectile.y++;
+    else if (projectile.direction == 'v') {
+        projectile.y++;
     }
 
-    else if (playerProjectile.direction == '>') {
-        playerProjectile.x++;
+    else if (projectile.direction == '>') {
+        projectile.x++;
     }
 
-    if (playerProjectile.x <= 0 || playerProjectile.x >= WIDTH - 1 || playerProjectile.y <= 0 || playerProjectile.y >= HEIGHT - 2) {
-        playerProjectile.x = -1;
-        playerProjectile.y = -1;
+    if (projectile.x <= 0 || projectile.x >= WIDTH - 1 || projectile.y <= 0 || projectile.y >= HEIGHT - 2) {
+        projectile.x = -1;
+        projectile.y = -1;
     }
 
     needRedraw = true;
 }
 
 // Функция выстрела снаряда
-void fireProjectile(char tankDir) {
+void fireProjectile(char tankDir, Projectile& projectile, Tank& tank) {
 
-        if (tankDir == '^') {
-            playerProjectile.x = playerTank.x;
-            playerProjectile.y = playerTank.y; // +
-        }
+    if (tankDir == '^') {
+        projectile.x = tank.x;
+        projectile.y = tank.y; // +
+    }
 
-        if (tankDir == 'v') {
-            playerProjectile.x = playerTank.x;
-            playerProjectile.y = playerTank.y; // -
-        }
+    if (tankDir == 'v') {
+        projectile.x = tank.x;
+        projectile.y = tank.y; // -
+    }
 
-        if (tankDir == '<') {
-            playerProjectile.x = playerTank.x;
-            playerProjectile.y = playerTank.y;
-        }
+    if (tankDir == '<') {
+        projectile.x = tank.x;
+        projectile.y = tank.y;
+    }
 
-        if (tankDir == '>') {
-            playerProjectile.x = playerTank.x;
-            playerProjectile.y = playerTank.y;
-        }
+    if (tankDir == '>') {
+        projectile.x = tank.x;
+        projectile.y = tank.y;
+    }
 
-        playerProjectile.direction = playerTank.direction;
+    projectile.direction = tank.direction;
 
 }
 
 // Функция соприкасания снаряда с объектом
-void projectileCollision() {
-    if (map[playerProjectile.y][playerProjectile.x] == '@') {
-        map[playerProjectile.y][playerProjectile.x] = '.';
-        playerProjectile.y = -1;
-        playerProjectile.x = -1;
+void projectileCollision(Projectile& projectile) {
+    if (map[projectile.y][projectile.x] == '@') {
+        map[projectile.y][projectile.x] = '.';
+        projectile.y = -1;
+        projectile.x = -1;
     } 
-    else if (map[playerProjectile.y][playerProjectile.x] == '#') {
+    else if (map[projectile.y][projectile.x] == '#') {
         return;
     }
 
     needRedraw = true;
+}
+
+// Функция для создания объекта вражеского танка
+void spawnEnemyTank() {
+    uint32_t tankPosition = rnd.rangeNum(1, 4);
+    Tank enemyTank {0, 0, '>'};
+
+    if (tankPosition == 1) enemyTank = {1, 1, '>'};
+    else if (tankPosition == 2) enemyTank = {13, 1, '>'};
+    else if (tankPosition == 3) enemyTank = {1, 8, '>'};
+    else if (tankPosition == 4) enemyTank = {13, 8, '>'};
+
+    enemyTanks.push_back(enemyTank); // Добавление танка в глобальный список
+
+    for (int i = 0; i < enemyTanks.size(); i++) {
+
+    }
+
+    drawDirSym(enemyTank.x, enemyTank.y, enemyTank.direction, enemyTank);
+
+    return;
+}
+
+// Функция создания задержки между появлением вражеских танков
+void spawnDelay(auto& lastSpawnTime, int spawnInterval) {  
+    auto now = steady_clock::now();
+    auto timeElapsed = duration_cast<milliseconds>(now - lastSpawnTime).count();
+
+    if (timeElapsed >= spawnInterval) {
+        spawnEnemyTank();
+        lastSpawnTime = now;
+    }
+
+    std::cout << enemyTanks.size() << std::endl;
+    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
 // Функция отрисовки карты
@@ -259,10 +284,15 @@ char getPressedKey() {
 
 int main() {
 
+    // Начальные значения для подсчёта кол-ва прошедшего времени для спавна вражеских танков с определённым интервалом (2000 мс)
+    auto lastSpawnTime = steady_clock::now();
+    int spawnInterval = 5000;
 
-    system("cls");
-    //std::cout << std::endl;
-    setColor(7);
+    // Очистка консоли (на всякий случай)
+    //system("cls");
+
+    // Начальное текстовое меню для удобства пользователя
+    setColor(7);    // Обычный (белый) цвет консольного шрифта
     std::cout << "Welcome to BattleCity.exe!" << std::endl << "\n";
     setColor(2);
     std::cout << "Controls: " << std::endl << "\n";
@@ -281,36 +311,44 @@ int main() {
 
     //std::cout << rnd.randNum() << std::flush;
 
+    //spawnDelay();
+
+    // Реализация начала игры после нажатия кнопки enter
     while (true) {
         if (GetAsyncKeyState(VK_RETURN) & 0x8000) {
             isRunning = true;
             setColor(7);
             break;
+        } 
+        else if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {  // Кнопка для выхода из игры (выполняемой программы)
+            isRunning = false;
+            system("cls");
+            exit(0);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 
-    char startKey = getPressedKey();
+    // char startKey = getPressedKey();
 
-    if (startKey == 'n') { 
-        isRunning = true;
-    }
+    // if (startKey == 'n') { 
+    //     isRunning = true;
+    // }
 
    // std::thread playerProjectileThread(asyncMoveProjectile);    // Здесь создаётся отдельный поток для движения снаряда
    // std::thread playerTankThread(asyncMoveTank);                // Аналогично с танком игрока
    
-   // std::this_thread::sleep_for(std::chrono::seconds(1));             
+   // std::this_thread::sleep_for(std::chrono::seconds(1));        
 
     while (isRunning) {
 
-        spawnEnemyTank();
         //std::this_thread::sleep_for(std::chrono::seconds(1));  
+        spawnDelay(lastSpawnTime, spawnInterval); // Функция для создания вражеских танков
 
-        projectileCollision();
+        projectileCollision(playerProjectile);
         char key = getPressedKey();
 
         if (playerProjectile.x != -1) { // Проверка на наличие снаряда на карте
-            moveProjectile();
+            moveProjectile(playerProjectile);
             //std::this_thread::sleep_for(std::chrono::milliseconds(50));    // Задержка для замедления полёта снаряда
         }
 
@@ -318,7 +356,7 @@ int main() {
        
         if (key != '\0') { 
             if (key == 'p') {    // Кнопка для выстрела из танка
-                fireProjectile(playerTank.direction);
+                fireProjectile(playerTank.direction, playerProjectile, playerTank);
             }
 
             else if (key == 'e') {  // Кнопка для выхода из игры (выполняемой программы)
@@ -328,7 +366,8 @@ int main() {
             }
 
             else {
-                moveTank(key);
+                moveTank(key, playerTank); // Если были нажаты кнопки "w" || "a" || "s" || "d", то танк двигается с места (либо меняет символ в сторону направления 
+                                           // движения если не может двинуться из-за преграды)
             }
         }
 
