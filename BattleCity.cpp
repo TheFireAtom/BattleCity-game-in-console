@@ -57,6 +57,7 @@ struct Tank {
 Projectile playerProjectile = {-1, -1, '\0'};
 Tank playerTank = {6, 7, '^'};
 std::vector<Tank> enemyTanks; // Глобальный вектор вражеских танков
+std::vector<Projectile> enemyProjectiles; // Глобальный вектор снарядов врага
 //std::vector<Projectile> enemyProjectiles; // Глобальный вектор вражеских снарядов
 
 // Функция для движения танка в определённую сторону и отрисовки соответственного символа
@@ -121,6 +122,32 @@ void moveTank(char direction, Tank& tank) {
 // Функция движения снаряда
 void moveProjectile(Projectile& projectile) {
     //std::lock_guard<std::mutex> lock(mtx);
+
+    for (auto& proj : enemyProjectiles) {
+        if (proj.x == -1) return;   // Если снаряд не был выстрелен, функция не изменит его положения
+
+        if (proj.direction == '^') {    
+            proj.y--;
+        }
+
+        else if (proj.direction == '<') {
+            proj.x--;
+        }
+
+        else if (proj.direction == 'v') {
+            proj.y++;
+        }
+
+        else if (proj.direction == '>') {
+            proj.x++;
+        }
+
+        if (proj.x <= 0 || proj.x >= WIDTH - 1 || proj.y <= 0 || proj.y >= HEIGHT - 2) {
+            proj.x = -1;
+            proj.y = -1;
+        }
+    }
+
     if (projectile.x == -1) return;   // Если снаряд не был выстрелен, функция не изменит его положения
 
     if (projectile.direction == '^') {    
@@ -139,16 +166,6 @@ void moveProjectile(Projectile& projectile) {
         projectile.x++;
     }
 
-    // for (size_t i = 0; i < enemyTanks.size(); i++) {
-    //     if (enemyTanks[i].projectile.x != -1) {
-    //         int px = enemyTanks[i].projectile.x;
-    //         int py = enemyTanks[i].projectile.y;
-    //         if (map[px][py] == '.' || map[px][py] == я'@') {
-    //             map[px][py] = '*';
-    //         }
-    //     }    
-    // }
-
     if (projectile.x <= 0 || projectile.x >= WIDTH - 1 || projectile.y <= 0 || projectile.y >= HEIGHT - 2) {
         projectile.x = -1;
         projectile.y = -1;
@@ -160,27 +177,53 @@ void moveProjectile(Projectile& projectile) {
 // Функция выстрела снаряда
 void fireProjectile(char tankDir, Projectile& projectile, Tank& tank) {
 
-    if (tankDir == '^') {
-        projectile.x = tank.x;
-        projectile.y = tank.y; // +
+    if ((tank.x && tank.y) != (playerTank.x && playerTank.y)) {
+        enemyProjectiles.push_back(projectile);
     }
 
-    if (tankDir == 'v') {
+    for (auto& proj : enemyProjectiles) {
+        if (tankDir == '^') {
+            proj.x = tank.x;
+            proj.y = tank.y; // -
+        }
+
+        else if (tankDir == 'v') {
+            proj.x = tank.x;
+            proj.y = tank.y; // +
+        }
+
+        else if (tankDir == '<') {
+            proj.x = tank.x;
+            proj.y = tank.y;
+        }
+
+        else if (tankDir == '>') {
+            proj.x = tank.x;
+            proj.y = tank.y;
+        }
+    }
+
+    if (tankDir == '^') {
         projectile.x = tank.x;
         projectile.y = tank.y; // -
     }
 
-    if (tankDir == '<') {
+    else if (tankDir == 'v') {
+        projectile.x = tank.x;
+        projectile.y = tank.y; // +
+    }
+
+    else if (tankDir == '<') {
         projectile.x = tank.x;
         projectile.y = tank.y;
     }
 
-    if (tankDir == '>') {
+    else if (tankDir == '>') {
         projectile.x = tank.x;
         projectile.y = tank.y;
     }
 
-    projectile.direction = tank.direction;
+    projectile.direction = tankDir;
 
 }
 
@@ -214,8 +257,10 @@ void enemyProjectileCollision() {
 }
 
 void moveEnemyProjectile() {
-    for (auto& enemy : enemyTanks) {
-        for (auto& projectile : )
+    for (auto& proj : enemyProjectiles) {
+        if (proj.x != -1) {
+            moveProjectile(proj);
+        }
     }
 }
 
@@ -227,6 +272,29 @@ void enemyTankAi() {
 
         int newX = tank.x, newY = tank.y;
         char newDir = tank.direction;
+
+        // Если танк на одной линии с игроком, стреляет
+        if (playerX == newX || playerY == newY) {
+            if (playerY > newY) {
+                newDir = 'v';
+                fireProjectile(newDir, tank.projectile, tank);
+                drawDirSym(newX, newY, newDir, tank);
+                
+            } else if (playerY < newY) {
+                newDir = '^';
+                fireProjectile(newDir, tank.projectile, tank);
+                drawDirSym(newX, newY, newDir, tank);
+                
+            } else if (playerX > newX) {
+                newDir = '<';
+                drawDirSym(newX, newY, newDir, tank);
+                fireProjectile(newDir, tank.projectile, tank);
+            } else if (playerX < newX) {
+                newDir = '>';
+                drawDirSym(newX, newY, newDir, tank);
+                fireProjectile(newDir, tank.projectile, tank);
+            }
+        }
 
         // Определяем, в какую сторону танк должен смотреть (в сторону игрока)
         if (playerX < tank.x) {
@@ -255,14 +323,7 @@ void enemyTankAi() {
         if (newX != tank.x || newY != tank.y || newDir != tank.direction) {
             drawDirSym(newX, newY, newDir, tank);
         }
-
-        // Если танк на одной линии с игроком, стреляет
-        else if (playerX == newX || playerY == newY) {
-            fireProjectile(newDir, tank.projectile, tank);
-        }
- 
     }
-
 }
 
 // Функция для создания объекта вражеского танка
@@ -317,7 +378,7 @@ void drawMap() {
                     
                 }
 
-                // Проверка на необходимость отрисовки снаряда врага
+                // Проверка на необходимость отрисовки снаряда врага !!!!ЗДЕСЬ НУЖНО ОБРАБАТЫВАТЬ СНАРЯДЫ ВРАГА В ГЛОБАЛЬНОМ ВЕКТОРЕ
                 if (!enemyDrawn) {
                     for (const auto& enemy : enemyTanks) {
                         const auto& proj = enemy.projectile;
@@ -326,6 +387,8 @@ void drawMap() {
                                 std::cout << '*';
                                 enemyDrawn = true;
                                 break;
+                            } else {
+                                std::cout << enemy.direction;
                             }
                         }
                     }
@@ -486,12 +549,15 @@ int main() {
         enemyTankAi();
 
         // Цикл для отдельной обработки каждого элемента массива танков врага (или же обработка единичных танков)
-        for (size_t k = 0; k < enemyTanks.size(); k++) {
-            if (enemyTanks[k].projectile.x != -1) {
-                moveProjectile(enemyTanks[k].projectile);
-                enemyProjectileCollision();
-            }
-        }
+        // for (size_t k = 0; k < enemyTanks.size(); k++) {
+        //     if (enemyTanks[k].projectile.x != -1) {
+        //         moveProjectile(enemyTanks[k].projectile);
+        //         enemyProjectileCollision();
+        //     }
+        // }
+
+        moveEnemyProjectile();
+        enemyProjectileCollision();
 
         // if (needRedraw) {
         //     drawMap();
