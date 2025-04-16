@@ -131,8 +131,10 @@ public:
 		}
 	}
 
-	void collision() {
-		if ()
+	void checkCollision(int mapX, int mapY) {
+		if ((map[mapY][mapX] == map[y][x]) && (map[mapY][mapX] == '@' || map[mapY][mapX] == '^' || map[mapY][mapX] == 'v' || map[mapY][mapX] == '>' || map[mapY][mapX] == '<')) {
+			updateCell(mapX, mapY, '*');
+		}
 	}
 
 };
@@ -176,9 +178,10 @@ public:
 
 	// Методы для управления снарядом
 	void fireProjectile() {
+		
 		projectile.setIsActive(true);
 		projectile.setDirection(direction);
-		
+
 		switch(direction) {
 			case '^': projectile.setPosition(x, (y - 1)); break;
 			case 'v': projectile.setPosition(x, (y + 1)); break;
@@ -200,6 +203,14 @@ void initialDrawMap() {
 			std::cout << map[y][x];
 		}
 		std::cout << std::endl;
+	}
+}
+
+void handleMapOutput() {
+	for (int y; y < HEIGHT; y++) {
+		for (int x; x < WIDTH; x++) {
+
+		}
 	}
 }
 
