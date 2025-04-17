@@ -8,6 +8,7 @@
 // Глобальные переменные 
 const int WIDTH = 23;	// + 1 из-за невидимого символа окончания строки
 const int HEIGHT = 13; 
+bool isRunning = false; // Состояние игры
 XorShift32 rnd;		// Объект для генерации случайного значения
 
 char map[HEIGHT][WIDTH] = {		// Массив для генерации карты игры 
@@ -19,7 +20,7 @@ char map[HEIGHT][WIDTH] = {		// Массив для генерации карт�
 	"#....................#",
 	"#...@@@..@@@@..@@@...#",
 	"#....................#",
-	"#...@@@@.^....@@@@...#",
+	"#...@@@@......@@@@...#",
 	"#....@@........@@....#",
 	"#...@@@@......@@@@...#",
 	"#....................#",
@@ -31,6 +32,22 @@ char map[HEIGHT][WIDTH] = {		// Массив для генерации карт�
 void setColor(int color) {      // Функция для установки цвета в командной строке
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
 } 
+
+char getPressedKey() {
+	// Кнопки для выбора направления движения танка
+	if (GetAsyncKeyState('W') & 0x8000) return 'w';
+	if (GetAsyncKeyState('A') & 0x8000) return 'a';
+	if (GetAsyncKeyState('S') & 0x8000) return 's';
+	if (GetAsyncKeyState('D') & 0x8000) return 'd';
+	// Кнопка для выстрела снарядом
+	if (GetAsyncKeyState(' ') & 0x8000) return 'p';
+	// Кнопка для выхода из игры
+	if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) return 'e';
+	// Кнопка для начала игры (или же выхода со стартового экрана)
+	if (GetAsyncKeyState(VK_RETURN) & 0x8000) return 'n';
+
+	return '\0';	// Если ни одна кнопка не была нажата, возвращается пустой символ (терминарный ноль)
+}
 
 void startScreen() {
 	setColor(7);    // Обычный (белый) цвет консольного шрифта
@@ -47,6 +64,19 @@ void startScreen() {
     setColor(4);	// Красный цвет консольного шрифта
     std::cout << "Press 'Enter' key to start the game!" << std::endl;
     setColor(7);	
+}
+
+void runGame() {
+	char key = getPressedKey();
+    if (key == 'n') {
+    	isRunning = true;
+    	system("cls");
+    	return;
+    } else if (key == 'e') {
+    	isRunning = false;
+    	system("cls");
+    	exit(0);
+    }
 }
 
 void hideCursor() {
@@ -71,27 +101,13 @@ void showCursor() {
     SetConsoleCursorInfo(hConsole, &cursorInfo);
 }
 
-// "\033[H\033[J" for screen cleaning;
+// "\033[H\033[J" для очистки экрана;
 void updateCell(int x, int y, char newSymbol) {
 	std::cout << "\033[" << (y + 1) << ";" << (x + 1) << "H" << newSymbol;
 }
 
 void delay(int milliseconds) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
-}
-
-char getPressedKey() {
-	// Кнопки для выбора направления движения танка
-	if (GetAsyncKeyState('W') & 0x8000) return 'w';
-	if (GetAsyncKeyState('A') & 0x8000) return 'a';
-	if (GetAsyncKeyState('S') & 0x8000) return 's';
-	if (GetAsyncKeyState('D') & 0x8000) return 'd';
-	// Кнопка для выстрела снарядом
-	if (GetAsyncKeyState(' ') & 0x8000) return 'p';
-	// Кнопка для выхода из игры
-	if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) return 'e';
-
-	return '\0';	// Если ни одна кнопка не была нажата, возвращается пустой символ (терминарный ноль)
 }
 
 class Projectile {
@@ -122,6 +138,11 @@ public:
 
 	// Методы класса
 
+	// Метод для отрисовки снарядов
+	void draw() const {
+		updateCell(x, y, direction);
+	}
+
 	void move() {
 		switch(direction) {
 			case '^': y--; break;
@@ -131,10 +152,20 @@ public:
 		}
 	}
 
-	void checkCollision(int mapX, int mapY) {
-		if ((map[mapY][mapX] == map[y][x]) && (map[mapY][mapX] == '@' || map[mapY][mapX] == '^' || map[mapY][mapX] == 'v' || map[mapY][mapX] == '>' || map[mapY][mapX] == '<')) {
-			updateCell(mapX, mapY, '*');
-		}
+	bool checkCollision() {
+		if (x >= WIDTH || x <= 0 || y >= HEIGHT	|| y <= 0) {
+			isActive = false;
+			return true;	// При условии выхода за пределы карты
+		} 
+
+		char cell = map[y][x];
+		if (cell == '@' || cell == '^' || cell == 'v' || cell == '>' || cell == '<') {
+			// updateCell(x, y, '*');
+			isActive = false;
+			return true;	// При условии попадания в стену или в танк
+		} 
+
+		return false;
 	}
 
 };
@@ -176,7 +207,14 @@ public:
 	int decX() { return x--; }
 	int decY() { return y--; }
 
+	// Метод для отрисовки танка
+
+	void draw() const {
+		updateCell(x, y, direction);
+	}
+
 	// Методы для управления снарядом
+
 	void fireProjectile() {
 		
 		projectile.setIsActive(true);
@@ -188,12 +226,61 @@ public:
 			case '>': projectile.setPosition((x + 1), y); break;
 			case '<': projectile.setPosition((x - 1), y); break; 
 		}
-	}
+	} 
+
 
 	// Виртуальные
 
-	virtual void moveTank();
+	virtual void moveTank() = 0;
+	//virtual void fireProjectile();
 
+};
+
+// Класс танка игрока
+
+class PlayerTank : public Tank {
+public:
+	PlayerTank(int x, int y, char dir, bool alive) : Tank(x, y, dir, alive) {}
+
+	void moveTank() override {
+		int oldX = x;
+		int oldY = y;
+		char oldDirection;
+
+		bool moveW = true;
+		bool moveA = true;
+		bool moveS = true;
+		bool moveD = true;
+
+		int dx = 1;
+		int dy = 1;
+
+		// Работает нормально за исключением застревания в боковых клетках, можно исправить с помощью булевой переменной
+
+		// if (map[y - 1][x] == '#' || map[y - 1][x] == '@' || map[y - 1][x] == '^' 
+		// 	|| map[y - 1][x] == 'v' || map[y - 1][x] == '>' || map[y - 1][x] == '<' ) moveW = false;
+		// else if (map[y + 1][x] == '#' || map[y + 1][x] == '@' || map[y + 1][x] == '^' 
+		// 	|| map[y + 1][x] == 'v' || map[y + 1][x] == '>' || map[y + 1][x] == '<') moveS = false;
+
+		// if (map[y][x - 1] == '#' || map[y][x - 1] == '@' || map[y][x - 1] == '^' 
+		// 	|| map[y][x - 1] == 'v' || map[y][x - 1] == '>' || map[y][x - 1] == '<') moveA = false;
+		// else if (map[y][x + 1] == '#' || map[y][x + 1] == '@' || map[y][x + 1] == '^' 
+		// 	|| map[y][x + 1] == 'v' || map[y][x + 1] == '>' || map[y][x + 1] == '<') moveD = false;
+
+		if (map[y - 1][x] == '#' || map[y - 1][x] == '@') moveW = false;
+		if (map[y + 1][x] == '#' || map[y + 1][x] == '@') moveS = false;
+
+		if (map[y][x - 1] == '#' || map[y][x - 1] == '@') moveA = false;
+		if (map[y][x + 1] == '#' || map[y][x + 1] == '@') moveD = false;
+			
+		switch(getPressedKey()) {
+			case 'w': direction = '^'; if (moveW) y -= dy; break;
+			case 'a': direction = '<'; if (moveA) x -= dx; break;
+			case 's': direction = 'v'; if (moveS) y += dy; break;
+			case 'd': direction = '>'; if (moveD) x += dx; break; 
+		} 
+		updateCell(oldX, oldY, '.'); 
+	}
 };
 
 void initialDrawMap() {
@@ -206,31 +293,50 @@ void initialDrawMap() {
 	}
 }
 
-void handleMapOutput() {
-	for (int y; y < HEIGHT; y++) {
-		for (int x; x < WIDTH; x++) {
-
-		}
+void handleInput() {
+	char key = getPressedKey();
+	if (key == 'e') {
+		system("cls");
+		exit(0);
 	}
+	delay(50);
 }
+
+// void updateGameLogic() {
+// 	player->moveTank();
+// 	player.projectile->move();
+// }
 
 int main() {
 	hideCursor();
 	startScreen();
 
+	while (!isRunning) {
+		runGame();
+	}
+
 	initialDrawMap();
-	while (true) {
-		// drawMap();
-		delay(500);
-		updateCell(13, 5, '%');
-		delay(500);
-		updateCell(14, 6, '%');
-		delay(500);
+
+	PlayerTank* player = new PlayerTank(8, 9, '^', true);
+
+	while (isRunning) {
+		//updateGameLogic();
+		player->moveTank();
+		player->draw();
+
+		if (getPressedKey() == 'p') {
+			player->fireProjectile();
+			player->draw();
+		}
+	
+		delay(200);
 	}
 
 	showCursor();
 
 	system("cls");
+
+	delete player;
 
 	return 0;
 }
