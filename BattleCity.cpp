@@ -33,7 +33,7 @@ void setColor(int color) {      // Функция для установки цв
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
 } 
 
-char getPressedKey() {
+char getPressedKey() {		// Функция считывания нажатия кнопки
 	// Кнопки для выбора направления движения танка
 	if (GetAsyncKeyState('W') & 0x8000) return 'w';
 	if (GetAsyncKeyState('A') & 0x8000) return 'a';
@@ -66,7 +66,7 @@ void startScreen() {
     setColor(7);	
 }
 
-void runGame() {
+void runGame() {	// Функция обрабатывания начала игры
 	char key = getPressedKey();
     if (key == 'n') {
     	isRunning = true;
@@ -121,7 +121,7 @@ public:
 	// Projectile(int startX, int startY, char startDir, bool active = true)
 	// 	: x(startX), y(startY), direction(startDir), isActive(active) {}
 
-	Projectile() : x(0), y(0), direction('^'), isActive(false) {}
+	Projectile() : x(0), y(0), direction('#'), isActive(false) {}
 
 	// Геттеры
 	int getX() const { return x; }
@@ -144,11 +144,18 @@ public:
 	}
 
 	void move() {
-		switch(direction) {
-			case '^': y--; break;
-			case 'v': y++; break;
-			case '>': x++; break;
-			case '<': x--; break;
+		if (isActive) {
+			int oldX = x;
+			int oldY = y;
+			char oldDirection;
+			
+			switch(direction) {
+				case '^': y--; break;
+				case 'v': y++; break;
+				case '>': x++; break;
+				case '<': x--; break;
+			}
+			updateCell(oldX, oldY, '.');
 		}
 	}
 
@@ -176,7 +183,7 @@ protected:	// Нужно для передачи данных полей доч�
 	int x, y;
 	char direction;
 	bool isAlive;
-	Projectile projectile;
+	// Projectile projectile;
   
 public:
 	// Конструктор
@@ -201,37 +208,39 @@ public:
 	// Обычные 
 
 	// Реализация декремента/инкремента значения позиции
-	int incX() { return x++; }
-	int incY() { return y++; }
+	// int incX() { return x++; }
+	// int incY() { return y++; }
 
-	int decX() { return x--; }
-	int decY() { return y--; }
+	// int decX() { return x--; }
+	// int decY() { return y--; }
 
 	// Метод для отрисовки танка
-
 	void draw() const {
 		updateCell(x, y, direction);
 	}
 
-	// Методы для управления снарядом
+	// Метод для спавна снаряда
+	void spawnProjectile() {
+		retunr Projectile projectile;
+	}
 
-	void fireProjectile() {
-		
-		projectile.setIsActive(true);
-		projectile.setDirection(direction);
-
-		switch(direction) {
-			case '^': projectile.setPosition(x, (y - 1)); break;
-			case 'v': projectile.setPosition(x, (y + 1)); break;
-			case '>': projectile.setPosition((x + 1), y); break;
-			case '<': projectile.setPosition((x - 1), y); break; 
-		}
-	} 
+	// Метод для отрисовки снаряда
+	void drawProjectile() const {
+		projectile.draw();
+	}
+	// Метод для движения снаряда
+	void moveProjectile() {
+		projectile.move();
+	}
 
 
-	// Виртуальные
+	// Виртуальные методы
 
 	virtual void moveTank() = 0;
+	virtual void fireProjectile() = 0;
+	// virtual void moveProjectile() {
+	// 	projectile.move();
+	// }
 	//virtual void fireProjectile();
 
 };
@@ -256,7 +265,6 @@ public:
 		int dy = 1;
 
 		// Работает нормально за исключением застревания в боковых клетках, можно исправить с помощью булевой переменной
-
 		// if (map[y - 1][x] == '#' || map[y - 1][x] == '@' || map[y - 1][x] == '^' 
 		// 	|| map[y - 1][x] == 'v' || map[y - 1][x] == '>' || map[y - 1][x] == '<' ) moveW = false;
 		// else if (map[y + 1][x] == '#' || map[y + 1][x] == '@' || map[y + 1][x] == '^' 
@@ -281,6 +289,23 @@ public:
 		} 
 		updateCell(oldX, oldY, '.'); 
 	}
+
+	// Методы для управления снарядом
+
+	void fireProjectile() override {
+		if (getPressedKey() == 'p') {
+			projectile = spawnProjectile();
+			projectile.setIsActive(true);
+			projectile.setDirection(direction);
+
+			switch(direction) {
+				case '^': projectile.setPosition(x, (y - 1)); break;
+				case 'v': projectile.setPosition(x, (y + 1)); break;
+				case '>': projectile.setPosition((x + 1), y); break;
+				case '<': projectile.setPosition((x - 1), y); break; 
+			}
+		}
+	} 
 };
 
 void initialDrawMap() {
@@ -320,14 +345,19 @@ int main() {
 	PlayerTank* player = new PlayerTank(8, 9, '^', true);
 
 	while (isRunning) {
-		//updateGameLogic();
+		handleInput();
 		player->moveTank();
 		player->draw();
 
-		if (getPressedKey() == 'p') {
-			player->fireProjectile();
-			player->draw();
-		}
+		// if (getPressedKey() == 'p') {
+		// 	player->fireProjectile();
+		// }
+
+		player->fireProjectile();
+		player->drawProjectile();
+
+		player->moveProjectile();	
+		player->drawProjectile();
 	
 		delay(200);
 	}
