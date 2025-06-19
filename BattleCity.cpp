@@ -121,7 +121,7 @@ public:
 	// Projectile(int startX, int startY, char startDir, bool active = true)
 	// 	: x(startX), y(startY), direction(startDir), isActive(active) {}
 
-	Projectile() : x(0), y(0), direction('#'), isActive(false) {}
+	Projectile() : x(0), y(0), direction('#'), isActive(true) {}
 
 	// Геттеры
 	int getX() const { return x; }
@@ -183,7 +183,7 @@ protected:	// Нужно для передачи данных полей доч�
 	int x, y;
 	char direction;
 	bool isAlive;
-	// Projectile projectile;
+	std::vector<Projectile> projectiles;
   
 public:
 	// Конструктор
@@ -219,25 +219,20 @@ public:
 		updateCell(x, y, direction);
 	}
 
-	// Метод для спавна снаряда
-	void spawnProjectile() {
-		retunr Projectile projectile;
-	}
-
 	// Метод для отрисовки снаряда
-	void drawProjectile() const {
+	void drawProjectile(Projectile projectile) {
 		projectile.draw();
 	}
 	// Метод для движения снаряда
-	void moveProjectile() {
+	void moveProjectile(Projectile projectile) {
 		projectile.move();
 	}
-
 
 	// Виртуальные методы
 
 	virtual void moveTank() = 0;
-	virtual void fireProjectile() = 0;
+	// virtual void fireProjectile() = 0;
+	virtual void handleProjectile() = 0;
 	// virtual void moveProjectile() {
 	// 	projectile.move();
 	// }
@@ -290,22 +285,41 @@ public:
 		updateCell(oldX, oldY, '.'); 
 	}
 
-	// Методы для управления снарядом
+	void handleProjectile() {
 
-	void fireProjectile() override {
-		if (getPressedKey() == 'p') {
-			projectile = spawnProjectile();
-			projectile.setIsActive(true);
-			projectile.setDirection(direction);
+		char key = getPressedKey();
 
-			switch(direction) {
-				case '^': projectile.setPosition(x, (y - 1)); break;
-				case 'v': projectile.setPosition(x, (y + 1)); break;
-				case '>': projectile.setPosition((x + 1), y); break;
-				case '<': projectile.setPosition((x - 1), y); break; 
+		if (key == 'p') {
+			projectiles.push_back(Projectile());
+		}
+		
+		for (int i = 0; i < projectiles.size(); i++) {
+			Projectile proj = projectiles[i];
+			if (projectiles[i].getIsActive()) {
+				moveProjectile(proj);
+				drawProjectile(proj);
+			} else {
+				projectiles.erase(projectiles.begin() + i);
 			}
 		}
-	} 
+	}
+
+	// Методы для управления снарядом
+
+	// void fireProjectile() override {
+	// 	if (getPressedKey() == 'p') {
+	// 		projectile = spawnProjectile();
+	// 		projectile.setIsActive(true);
+	// 		projectile.setDirection(direction);
+
+	// 		switch(direction) {
+	// 			case '^': projectile.setPosition(x, (y - 1)); break;
+	// 			case 'v': projectile.setPosition(x, (y + 1)); break;
+	// 			case '>': projectile.setPosition((x + 1), y); break;
+	// 			case '<': projectile.setPosition((x - 1), y); break; 
+	// 		}
+	// 	}
+	// } 
 };
 
 void initialDrawMap() {
@@ -353,11 +367,11 @@ int main() {
 		// 	player->fireProjectile();
 		// }
 
-		player->fireProjectile();
-		player->drawProjectile();
+		// player->fireProjectile();
+		// player->drawProjectile();
 
-		player->moveProjectile();	
-		player->drawProjectile();
+		// player->moveProjectile();	
+		// player->drawProjectile();
 	
 		delay(200);
 	}
