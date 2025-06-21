@@ -27,6 +27,10 @@ char map[HEIGHT][WIDTH] = {		// Массив для генерации карт�
 	"######################"
 }; 
 
+void delay(int milliseconds) {
+	std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+}
+
 // Вспомогательные функции (изменение цвета консольного шрифта, задержки и т.д)
 
 void setColor(int color) {      // Функция для установки цвета в командной строке
@@ -69,10 +73,14 @@ void startScreen() {
 void runGame() {	// Функция обрабатывания начала игры
 	char key = getPressedKey();
     if (key == 'n') {
+    	std::cout << "Starting the game: " << std::endl;
+    	delay(1000);
     	isRunning = true;
     	system("cls");
     	return;
     } else if (key == 'e') {
+    	std::cout << "Exiting the game: " << std::endl;
+    	delay(1000);
     	isRunning = false;
     	system("cls");
     	exit(0);
@@ -106,10 +114,6 @@ void updateCell(int x, int y, char newSymbol) {
 	std::cout << "\033[" << (y + 1) << ";" << (x + 1) << "H" << newSymbol;
 }
 
-void delay(int milliseconds) {
-	std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
-}
-
 class Projectile {
 private:
 	int x, y;
@@ -121,7 +125,7 @@ public:
 	// Projectile(int startX, int startY, char startDir, bool active = true)
 	// 	: x(startX), y(startY), direction(startDir), isActive(active) {}
 
-	Projectile() : x(0), y(0), direction('#'), isActive(true) {}
+	Projectile() : x(0), y(0), direction('#'), isActive(false) {}
 
 	// Геттеры
 	int getX() const { return x; }
@@ -183,9 +187,10 @@ protected:	// Нужно для передачи данных полей доч�
 	int x, y;
 	char direction;
 	bool isAlive;
-	std::vector<Projectile> projectiles;
+	std::vector<Projectile> projectiles; // Вектор снарядов
   
 public:
+	
 	// Конструктор
 	Tank(int startX, int startY, char startDir, bool alive = true)
 		: x(startX), y(startY), direction(startDir), isAlive(alive) {}
@@ -285,7 +290,7 @@ public:
 		updateCell(oldX, oldY, '.'); 
 	}
 
-	void handleProjectile() {
+	void handleProjectile(std::vector<Projectile>& projectiles) {
 
 		char key = getPressedKey();
 
@@ -293,7 +298,7 @@ public:
 			projectiles.push_back(Projectile());
 		}
 		
-		for (int i = 0; i < projectiles.size(); i++) {
+		for (int i = 0; i <= projectiles.size(); i++) {
 			Projectile proj = projectiles[i];
 			if (projectiles[i].getIsActive()) {
 				moveProjectile(proj);
@@ -362,6 +367,7 @@ int main() {
 		handleInput();
 		player->moveTank();
 		player->draw();
+		player->handleProjectile();
 
 		// if (getPressedKey() == 'p') {
 		// 	player->fireProjectile();
